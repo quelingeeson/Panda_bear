@@ -133,17 +133,16 @@
     .result h2 {
       font-size: 32px;
       color: var(--yes);
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
+    
+    /* Container to keep the Tenor embed from getting too wide */
     .gif-container {
       width: 100%;
-      display: flex;
-      justify-content: center;
-    }
-    .result-gif {
-      width: 100%;
-      max-width: 300px; /* Adjusted size for the cute gif */
+      max-width: 300px; 
+      margin: 0 auto;
       border-radius: 12px;
+      overflow: hidden;
       box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
 
@@ -212,11 +211,23 @@
 
     <section class="result" id="result">
       <h2>YAY! 🎉</h2>
+      
       <div class="gif-container">
-        <img class="result-gif" src="https://media.tenor.com/fTTVgygQDT8AAAAC/dudu-bubu-cute-kiss.gif" alt="Dudu Bubu Kiss">
+        <div 
+          class="tenor-gif-embed" 
+          data-postid="2592649324383853718" 
+          data-share-method="host" 
+          data-aspect-ratio="1.05769" 
+          data-width="100%">
+          <a href="https://tenor.com/view/dudu-bubu-cute-kiss-lovely-so-adorable-gif-2592649324383853718">Dudu Bubu Cute Kiss Sticker</a>
+          from <a href="https://tenor.com/search/dudu+bubu+cute-stickers">Dudu Bubu Cute Stickers</a>
+        </div>
       </div>
+      
     </section>
   </main>
+
+  <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
 
   <script>
     const zone = document.getElementById("zone");
@@ -259,16 +270,14 @@
       const maxY = containerRect.height - btnRect.height;
 
       // 3. Generate random coordinates
-      // We use Math.max(0, ...) to ensure it doesn't go negative
       const randomX = Math.max(0, Math.floor(Math.random() * maxX));
       const randomY = Math.max(0, Math.floor(Math.random() * maxY));
 
       // 4. Apply new position
-      // Important: On mobile, we set position relative to the zone
       noBtn.style.left = randomX + "px";
       noBtn.style.top = randomY + "px";
       
-      // Reset transform because CSS centering might interfere with manual positioning
+      // Reset transform 
       noBtn.style.transform = "none"; 
       
       // 5. Grow the Yes button
@@ -284,9 +293,8 @@
     noBtn.addEventListener("mouseover", moveNo);
 
     // --- MOBILE INTERACTION (Touch) ---
-    // 'touchstart' fires the moment a finger touches the element.
     noBtn.addEventListener("touchstart", function(e) {
-      e.preventDefault(); // This stops the 'click' from happening
+      e.preventDefault(); 
       moveNo();
     }, { passive: false });
 
@@ -298,11 +306,8 @@
 
     // YES BUTTON CLICK
     yesBtn.addEventListener("click", () => {
-      // Hide buttons and hint
       zone.style.display = "none";
       hint.style.display = "none";
-      
-      // Show celebration
       result.style.display = "block";
       launchConfetti();
     });
