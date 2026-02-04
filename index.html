@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Will you be my Valentine?</title>
 
-  <!-- Confetti library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
@@ -28,6 +27,9 @@
       font-family: system-ui, sans-serif;
       overflow: hidden;
       padding: 16px;
+      /* Prevent scrolling / bouncing on mobile */
+      overscroll-behavior: none;
+      touch-action: none;
     }
 
     /* FULL-SCREEN CONFETTI CANVAS */
@@ -48,6 +50,8 @@
       border-radius: 22px;
       text-align: center;
       box-shadow: 0 18px 60px rgba(0,0,0,.15);
+      position: relative;
+      z-index: 10;
     }
 
     .art {
@@ -58,16 +62,17 @@
     }
 
     h1 {
-      font-size: clamp(26px, 4vw, 44px);
+      font-size: clamp(24px, 5vw, 44px);
       margin: 12px 0 18px;
+      line-height: 1.2;
     }
 
     .button-zone {
       position: relative;
-      width: min(520px, 92%);
-      height: 150px;
+      width: 100%;
+      /* Increased height slightly for mobile maneuvering */
+      height: 180px; 
       margin: 0 auto;
-      touch-action: none;
     }
 
     button {
@@ -84,12 +89,14 @@
       user-select: none;
       -webkit-tap-highlight-color: transparent;
       transition: transform .12s ease, background .12s ease;
+      white-space: nowrap;
     }
 
     #yesBtn {
       left: 18%;
       background: var(--yes);
       color: #fff;
+      z-index: 20; /* Ensure Yes is always on top */
     }
     #yesBtn:hover { background: var(--yesHover); }
 
@@ -97,6 +104,7 @@
       left: 62%;
       background: #e5e7eb;
       color: #111827;
+      z-index: 10;
     }
 
     .hint {
@@ -133,7 +141,6 @@
   <canvas id="confettiCanvas"></canvas>
 
   <main class="card">
-    <!-- ANIMAL WITH HEART -->
     <svg class="art" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="fur" x1="0" x2="1">
@@ -178,7 +185,6 @@
       <button id="noBtn">No</button>
     </section>
 
-    <!-- HINT -->
     <div class="hint" id="hint">“No” seems a bit shy 😈</div>
 
     <section class="result" id="result">
@@ -246,16 +252,18 @@
     /* ---------- YES BUTTON GROWS ---------- */
     let yesScale = 1;
     function growYes() {
-      yesScale = Math.min(2.2, yesScale + 0.1);
+      yesScale = Math.min(6, yesScale + 0.2); // Allow it to grow bigger
       yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
     }
 
     /* ---------- NO BUTTON RUNS AWAY ---------- */
+    
+    // 1. DESKTOP: Smooth repel when mouse gets close
     function clamp(n, min, max) {
       return Math.max(min, Math.min(max, n));
     }
 
-    function moveNo(px, py) {
+    function moveNoSmooth(px, py) {
       const z = zone.getBoundingClientRect();
       const b = noBtn.getBoundingClientRect();
 
@@ -274,25 +282,50 @@
       noBtn.style.left = newLeft + "px";
       noBtn.style.top = newTop + "px";
       noBtn.style.transform = "none";
-
+      
       growYes();
     }
 
-    zone.addEventListener("pointermove", e => {
+    zone.addEventListener("mousemove", e => {
       const b = noBtn.getBoundingClientRect();
       const d = Math.hypot(
         (b.left + b.width / 2) - e.clientX,
         (b.top + b.height / 2) - e.clientY
       );
-      if (d < 140) moveNo(e.clientX, e.clientY);
+      if (d < 140) moveNoSmooth(e.clientX, e.clientY);
     });
 
-    noBtn.addEventListener("click", e => e.preventDefault());
+    // 2. MOBILE & DIRECT HITS: Instant Teleport
+    // This handles taps (touchstart) and fast mouse movements that hit the button
+    function teleportNo(e) {
+      if(e) e.preventDefault(); // Stop click
+
+      const z = zone.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      // Simple random position within zone
+      const randomX = Math.random() * (z.width - b.width);
+      const randomY = Math.random() * (z.height - b.height);
+
+      noBtn.style.left = randomX + "px";
+      noBtn.style.top = randomY + "px";
+      noBtn.style.transform = "none";
+      
+      growYes();
+    }
+
+    // "touchstart" is the magic event for mobile
+    noBtn.addEventListener("touchstart", teleportNo);
+    // "mouseover" handles if the mouse hits it before the smooth move can trigger
+    noBtn.addEventListener("mouseover", teleportNo);
+    // "click" just in case
+    noBtn.addEventListener("click", teleportNo);
+
 
     /* ---------- YES CLICK ---------- */
     yesBtn.addEventListener("click", () => {
       zone.style.display = "none";
-      hint.style.display = "none";     // HIDE THE HINT
+      hint.style.display = "none";
       result.style.display = "block";
       resizeConfettiCanvas();
       fullScreenConfetti();
@@ -300,7 +333,3 @@
   </script>
 </body>
 </html>
-
-
-
-
